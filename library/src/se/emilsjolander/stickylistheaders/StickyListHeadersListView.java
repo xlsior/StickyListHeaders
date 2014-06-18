@@ -346,7 +346,7 @@ public class StickyListHeadersListView extends FrameLayout {
             }
         }
 
-        if (header == null) {
+        if (mHeader == null) {
             return;
         }
 
