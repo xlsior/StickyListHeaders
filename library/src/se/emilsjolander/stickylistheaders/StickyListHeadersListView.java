@@ -281,14 +281,14 @@ public class StickyListHeadersListView extends FrameLayout {
         if (mHeader != null) {
             removeView(mHeader);
             mHeader = null;
-            mHeaderId = null;
-            mHeaderPosition = null;
-            mHeaderOffset = null;
-
-            // reset the top clipping length
-            mList.setTopClippingLength(0);
-            updateHeaderVisibilities();
         }
+        mHeaderId = null;
+        mHeaderPosition = null;
+        mHeaderOffset = null;
+
+        // reset the top clipping length
+        mList.setTopClippingLength(0);
+        updateHeaderVisibilities();
     }
 
     private void updateOrClearHeader(int firstVisiblePosition) {
@@ -328,23 +328,26 @@ public class StickyListHeadersListView extends FrameLayout {
                 mHeaderId = headerId;
                 final View header = mAdapter.getHeaderView(mHeaderPosition,
                         mHeader, this);
-                if (mHeader != header) {
-                    if (header == null) {
-                        throw new NullPointerException("header may not be null");
+                if (header != null) {
+                    if (mHeader != header) {
+                        swapHeader(header);
                     }
-                    swapHeader(header);
+                    ensureHeaderHasCorrectLayoutParams(mHeader);
+                    measureHeader(mHeader);
+                    if(mOnStickyHeaderChangedListener != null) {
+                        mOnStickyHeaderChangedListener.onStickyHeaderChanged(this,
+                                mHeader, firstVisiblePosition, mHeaderId);
+                    }
+                    // Reset mHeaderOffset to null ensuring
+                    // that it will be set on the header and
+                    // not skipped for performance reasons.
+                    mHeaderOffset = null;
                 }
-                ensureHeaderHasCorrectLayoutParams(mHeader);
-                measureHeader(mHeader);
-                if(mOnStickyHeaderChangedListener != null) {
-                    mOnStickyHeaderChangedListener.onStickyHeaderChanged(this,
-                            mHeader, firstVisiblePosition, mHeaderId);
-                }
-                // Reset mHeaderOffset to null ensuring
-                // that it will be set on the header and
-                // not skipped for performance reasons.
-                mHeaderOffset = null;
             }
+        }
+
+        if (mHeader == null) {
+            return;
         }
 
         int headerOffset = 0;
@@ -535,12 +538,11 @@ public class StickyListHeadersListView extends FrameLayout {
         boolean isStartOfSection = isStartOfSection(Math.max(0, position - getHeaderViewsCount()));
         if (!isStartOfSection) {
             View header = mAdapter.getHeaderView(position, null, mList);
-            if (header == null) {
-                throw new NullPointerException("header may not be null");
+            if (header != null) {
+                ensureHeaderHasCorrectLayoutParams(header);
+                measureHeader(header);
+                return header.getMeasuredHeight();
             }
-            ensureHeaderHasCorrectLayoutParams(header);
-            measureHeader(header);
-            return header.getMeasuredHeight();
         }
         return 0;
     }
